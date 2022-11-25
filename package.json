@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "scrape": "esr ./selenium.ts"
+    "scrape": "esr ./selenium.ts",
+    "nodemon": "nodemon ./selenium.js"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +17,7 @@
     "chromedriver": "^107.0.2",
     "express": "^4.18.2",
     "json2csv": "^5.0.7",
+    "nodemon": "^2.0.20",
     "puppeteer": "^19.2.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",

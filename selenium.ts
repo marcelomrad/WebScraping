@@ -1,5 +1,7 @@
 import {Request, Response} from 'express';
-const { Builder, By } = require('selenium-webdriver');
+const { Builder, By, Key, EC, WebDriverWait} = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+
 const express = require('express');
 
 const app = express();
@@ -14,7 +16,7 @@ app.get('/',async (request: Request, response: Response) => {
     }
 })
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`listening at http://localhost:${port}`)
 })
 
 async function WebScrapingLocalTest() {
@@ -60,4 +62,80 @@ async function getVideos(videos: any) {
         }); 
     return videoDetails;
    }
+
+   app.get('/test',async (request: Request, response: Response) => {
+    try{
+        let links = await Scraping();
+        response.status(200).json(links)
+    }catch(error){
+        console.log(error)
+    }
+})
+
+async function Scraping(){
+    const driver = await new Builder().forBrowser('chrome').build()
+    let linksDetails = [];
+    try {
+        let elemento
+        await driver.get('https://jurisprudencia.stf.jus.br/pages/search')
+        await driver.sleep(2000)
+
+        await driver.findElement(By.className('mat-icon notranslate mat-tooltip-trigger icon cursor-pointer ml-5 material-icons mat-icon-no-color')).click()
+        
+
+        // SELECIONA MONOCRATICAS
+        (async function getMonocraticas() {
+            try {
+              driver.wait(driver, 20).until(EC.elementToBeClickable(By.xpath('/html/body/app-root/app-home/main/search/div/search-input/div/div/div/div/div[2]/div/div[1]/div/mat-radio-group/span[4]/mat-radio-button/label/div[1]/div[2]')))
+              elemento = await driver.findElement(By.xpath('/html/body/app-root/app-home/main/search/div/search-input/div/div/div/div/div[2]/div/div[1]/div/mat-radio-group/span[4]/mat-radio-button/label/div[1]/div[2]'))
+              elemento.click()
+              driver.sleep(3)
+            } catch (error) {
+              console.log(error);
+            }
+          })().then(
+            () => console.log('SUCCESS'),
+            (err: any) => console.error('ERROR: ' + err)
+          )
+        
+          // DESABILITA BUSCA ENTRE ASPAS
+        elemento = await driver.findElement(By.xpath('/html/body/app-root/app-home/main/search/div/search-input/div/div/div/div/div[2]/div/div[4]/div/div[1]/div[2]/mat-checkbox[2]/label/div/input'))
+        driver.executeScript("arguments[0].click();", elemento);
+
+        // #HABILITA BUSCA POR RADICAIS
+        elemento = await driver.findElement(By.xpath('/html/body/app-root/app-home/main/search/div/search-input/div/div/div/div/div[2]/div/div[4]/div/div[1]/div[2]/mat-checkbox[1]/label/div/input'))
+        driver.executeScript("arguments[0].click();", elemento);
+
+        // #CAMPO DE BUSCA
+        elemento = driver.findElement(By.xpath('/html/body/app-root/app-home/main/search/div/search-input/div/div/div/div/div[2]/div/div[2]/div/mat-form-field/div/div[1]/div[3]/input'))
+        elemento.sendKeys('direito civil')
+
+        // #BOTAO PESQUISAR
+        elemento = await driver.findElement(By.xpath('/html/body/app-root/app-home/main/search/div/search-input/div/div/div/div/div[2]/div/div[4]/div/div[2]/button[2]'))
+        elemento.click()
+
+        // #Filtra Datas
+        (async function filtrarDatas() {
+            try {
+            driver.wait(driver, 20).until(EC.elementToBeClickable(By.xpath('/html/body/app-root/app-home/main/search/div/div/div/div[1]/div[2]/div[3]/div/div[2]/mat-form-field[1]/div/div[1]/div[3]/input')))
+             elemento = await driver.findElement(By.xpath('/html/body/app-root/app-home/main/search/div/div/div/div[1]/div[2]/div[3]/div/div[2]/mat-form-field[1]/div/div[1]/div[3]/input'))
+             elemento.click()
+             elemento.sendKeys('01/01/2015')
+              driver.sleep(3)
+            } catch (error) {
+              console.log(error);
+            }
+          })();
+      
+          return true
+      } catch (error) {
+          console.log(error);
+          return false
+      } finally {
+        await driver.quit();
+      }
+      
+}
+
+
 
